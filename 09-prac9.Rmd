@@ -6,13 +6,13 @@ By the end of this practical you should be able to:
 
 1. Explain hypothesis testing
 1. Execute regression in R
-1. Descrbie the assumptions associated with regression models 
-1. Explain steps to deal with spatially autocorrelated (spatial similarlity of nearby observations) residuals.  
+1. Describe the assumptions associated with regression models 
+1. Explain steps to deal with spatially autocorrelated (spatial similarity of nearby observations) residuals.  
 
 ## Homework 
 
 ::: {.infobox .assignment data-latex="{note}"}
-Outside of our schedulded sessions you should be doing around 12 hours of extra study per week. Feel free to follow your own GIS interests, but good places to start include the following:
+Outside of our scheduled sessions you should be doing around 12 hours of extra study per week. Feel free to follow your own GIS interests, but good places to start include the following:
 
 **Assignment**
 
@@ -36,7 +36,7 @@ Remember this is just a starting point, explore the [reading list](https://rl.ta
 
 Some of these practicals are long, take regular breaks and have a listen to some of our fav tunes each week.
 
-[Andy](https://open.spotify.com/album/6NtEjhPWfZcvJQuvjGX4bk) Haim. Can all play loads of instuments and just switch during live sets. 
+[Andy](https://open.spotify.com/album/6NtEjhPWfZcvJQuvjGX4bk) Haim. Can all play loads of instruments and just switch during live sets. 
 
 [Adam](https://open.spotify.com/album/6EO1grYN4T3D6HQpBdp3Ad) Music this week - time for some big, dirty rock and roll. The Wildhearts have only gone and released a massive live album - oh yes!
 
@@ -48,7 +48,7 @@ In the worked example, we will explore the factors that might affect the average
 
 The London Data Store collates a range of other variables for each Ward and so we will see if any of these are able to help explain the patterns of exam performance that we see.
 
-This practical will walk you through the common steps that you should go through when building a regression model using spatial data to test a stated research hypothsis; from carrying out some descriptive visualisation and summary statistics, to interpreting the results and using the outputs of the model to inform your next steps. 
+This practical will walk you through the common steps that you should go through when building a regression model using spatial data to test a stated research hypothesis; from carrying out some descriptive visualisation and summary statistics, to interpreting the results and using the outputs of the model to inform your next steps. 
 
 ### Setting up your Data
 
@@ -78,6 +78,8 @@ Read some ward data in
 
 download.file("https://data.london.gov.uk/download/statistical-gis-boundary-files-london/9ba8c833-6370-4b11-abdc-314aa020d5e0/statistical-gis-boundaries-london.zip", 
               destfile="prac9_data/statistical-gis-boundaries-london.zip")
+
+knitr::purl()
 ```
 
 Get the zip file and extract it
@@ -191,6 +193,7 @@ Let's add some schools data as well.
 
 ```{r, message=FALSE, cache=TRUE}
 #might be a good idea to see where the secondary schools are in London too
+
 london_schools <- read_csv("https://data.london.gov.uk/download/london-schools-atlas/57046151-39a0-45d9-8dc0-27ea7fd02de8/all_schools_xy_2016.csv")
 
 #from the coordinate values stored in the x and y columns, which look like they are latitude and longitude values, create a new points dataset
@@ -241,11 +244,11 @@ Here, I have plotted the average GCSE point score for each Ward in London agains
 
 Remember that my *null hypothesis* would be that there is no relationship between GCSE scores and unauthorised absence from school. If this null hypothesis was true, then I would not expect to see any pattern in the cloud of points plotted above. 
 
-As it is, the scatter plot shows that, generally, as the $x$ axis *independent variable* (unauthorised absence) goes up, our $y$ axis *dependent variable* (GCSE point score) goes down. This is not a random cloud of points, but something that indicates there could be a relationshp here and so I might be looking to reject my null hypothesis. 
+As it is, the scatter plot shows that, generally, as the $x$ axis *independent variable* (unauthorised absence) goes up, our $y$ axis *dependent variable* (GCSE point score) goes down. This is not a random cloud of points, but something that indicates there could be a relationship here and so I might be looking to reject my null hypothesis. 
 
 **Some conventions** - In a regression equation, the dependent variable is always labelled $y$ and shown on the $y$ axis of a graph, the predictor or independent variable(s) is(are) always shown on the $x$ axis. 
 
-I have added a blue line of best-fit - this is the line that can be drawn by minimising the sum of the squared differences between the line and the residuals. The residuals are all of the dots not falling exactly on the blue line. An algorithm known as 'ordinary least squares' (OLS) is used to draw this line and it simply tries a selection of different lines until the sum of the squared divations between all of the residuals and the blue line is minimised, leaving the final solution. 
+I have added a blue line of best-fit - this is the line that can be drawn by minimising the sum of the squared differences between the line and the residuals. The residuals are all of the dots not falling exactly on the blue line. An algorithm known as 'ordinary least squares' (OLS) is used to draw this line and it simply tries a selection of different lines until the sum of the squared devations between all of the residuals and the blue line is minimised, leaving the final solution. 
 
 As a general rule, the better the blue line is at summarising the relationship between $y$ and $x$, the better the model. 
 
@@ -259,9 +262,9 @@ $\beta_0$ is the intercept (the value of $y$ when $x = 0$ - somewhere around 370
 
 $\beta_1$ is sometimes referred to as the 'slope' parameter and is simply the change in the value of $y$ for a 1 unit change in the value of $x$ (the slope of the blue line) - reading the graph above, the change in the value of $y$ reading between 1.0 and 2.0 on the $x$ axis looks to be around -40.
 
-$\epsilon_i$ is a random error term (positive or negative) that should sum to 0 - esentially, if you add all of the vertical differences between the blue line and all of the residuals, it should sum to 0.
+$\epsilon_i$ is a random error term (positive or negative) that should sum to 0 - essentially, if you add all of the vertical differences between the blue line and all of the residuals, it should sum to 0.
 
-Any value of $y$ along the blue line can be modelled using the corresponding value of $x$ and these parameter values. Examining the graph above we would expect the average GCSE point score for a student living in a Ward where 0.5% of school days per year were missed, to equal around 350, but we can confirm this by plugging the $\beta$ parameter values and the value of $x$ into equation (1):
+Any value of $y$ along the blue line can be modeled using the corresponding value of $x$ and these parameter values. Examining the graph above we would expect the average GCSE point score for a student living in a Ward where 0.5% of school days per year were missed, to equal around 350, but we can confirm this by plugging the $\beta$ parameter values and the value of $x$ into equation (1):
 
 ```{r, message=FALSE, cache=TRUE}
 370 + (-40*0.5) + 0
@@ -298,7 +301,7 @@ summary(model1)
 
 #### Interpreting and using the model outputs
 
-In running a regression model, we are effectively trying to test (disprove) our null hypothesis. If our null hypothsis was true, then we would expect our coefficients to = 0. 
+In running a regression model, we are effectively trying to test (disprove) our null hypothesis. If our null hypothesis was true, then we would expect our coefficients to = 0. 
 
 In the output summary of the model above, there are a number of features you should pay attention to:
 
@@ -309,11 +312,11 @@ In the output summary of the model above, there are a number of features you sho
 **Coefficient t-value** - this is the value of the coefficient divided by the standard error and so can be thought of as a kind of standardised coefficient value. The larger (either positive or negative) the value the greater the relative effect that particular independent variable is having on the dependent variable (this is perhaps more useful when we have several independent variables in the model) .
 
 **Coefficient p-value - Pr(>|t|)** - the p-value is a measure of significance. There is lots of debate about p-values which I won't go into here, but essentially it refers to the probability of getting a coefficient as large as the one observed in a set of random data. p-values can be thought of as percentages, so if we have a p-value of 0.5, then there is a 5% chance that our coefficient could have occurred in some random data, or put another way, a 95% chance that out coefficient could have only occurred in our data. 
-As a rule of thumb, the smaller the p-value, the more significant that variable is in the story and the smaller the chance that the relationship being observed is just random. Generally, statisticians use 5% or 0.05 as the acceptable cut-off for statistical significance - anything greater than that we should be a little sceptical about. 
+As a rule of thumb, the smaller the p-value, the more significant that variable is in the story and the smaller the chance that the relationship being observed is just random. Generally, statisticians use 5% or 0.05 as the acceptable cut-off for statistical significance - anything greater than that we should be a little skeptical about. 
 
 In `r` the codes `***, **, **, .` are used to indicate significance. We generally want at least a single `*` next to our coefficient for it to be worth considering. 
 
-**R-Squared** - This can be thought of as an indication of how good your model is - a measure of 'goodness-of-fit' (of which there are a number of others). $r^2$ is quite an intuitite measure of fit as it ranges between 0 and 1 and can be thought of as the % of variation in the dependent variable (in our case GCSE score) explained by variation in the independent variable(s). In our example, an $r^2$ value of 0.42 indicates that around 42% of the variation in GCSE scores can be explained by variation in unathorised absence from school. In other words, this is quite a good model. The $r^2$ value will increase as more independent explanatory variables are added into the model, so where this might be an issue, the adjusted r-squared value can be used to account for this affect
+**R-Squared** - This can be thought of as an indication of how good your model is - a measure of 'goodness-of-fit' (of which there are a number of others). $r^2$ is quite an intuitive measure of fit as it ranges between 0 and 1 and can be thought of as the % of variation in the dependent variable (in our case GCSE score) explained by variation in the independent variable(s). In our example, an $r^2$ value of 0.42 indicates that around 42% of the variation in GCSE scores can be explained by variation in unathorised absence from school. In other words, this is quite a good model. The $r^2$ value will increase as more independent explanatory variables are added into the model, so where this might be an issue, the adjusted r-squared value can be used to account for this affect
 
 #### broom
 
@@ -342,13 +345,15 @@ But wait? Didn't we try to model our GCSE values based on our unauthorised absen
 library(tidypredict)
 Regressiondata %>%
   tidypredict_to_column(model1)
+
+
 ```
 
 ### Bootstrap resampling
 
-If we only fit our model once, how can we be confident about that estiamte? Bootstrap resampling is where we take the original dataset and select random data points from within it, but in order to keep it the same size as the original dataset some records are duplicated. This is known as bootstrap resampling by replacement.
+If we only fit our model once, how can we be confident about that estimate? Bootstrap resampling is where we take the original dataset and select random data points from within it, but in order to keep it the same size as the original dataset some records are duplicated. This is known as bootstrap resampling by replacement.
 
-So first let's again get rid of all the coloumns we aren't using in this model using as they will just slow us down. At the moment we only care about average GCSE scores and unauthorised absecne in schools. 
+So first let's again get rid of all the columns we aren't using in this model using as they will just slow us down. At the moment we only care about average GCSE scores and unauthorised absecne in schools. 
 
 ```{r, message=FALSE, cache=FALSE}
 Bootstrapdata<- LonWardProfiles%>%
@@ -393,7 +398,7 @@ GCSE_models$model[[1]]
 #GCSE_models$model
 ```
 
-However, this is a very ugly output and pretty hard to understand. Now remember when we just went through the magic of [broom]? You might have thought that it didn't do very much! This is where it can really be of use. We want to tidy up our models results so we can actually use them. Firstly let's add a new coloumn with mutate (coef_info) then take our model coloumn and using the `map()` function again tidy the outputs (saving the result into that new coef_info column).
+However, this is a very ugly output and pretty hard to understand. Now remember when we just went through the magic of [broom]? You might have thought that it didn't do very much! This is where it can really be of use. We want to tidy up our models results so we can actually use them. Firstly let's add a new column with mutate (coef_info) then take our model column and using the `map()` function again tidy the outputs (saving the result into that new coef_info column).
 
 ```{r, message=FALSE, cache=FALSE}
 
@@ -402,7 +407,7 @@ GCSE_models_tidy <- GCSE_models %>%
     coef_info = map(model, tidy))
 ```
 
-So this has just added the information about our coefficents to a new column in the original table, but what if we actually want to extract this information, well we can just use `unnest()` from the `tidyr` package (also part of the `tidyverse`) that takes a list-column and makes each element its own row. I know it's a list column as if you just explore `GCSE_models_tidy` (just run that in the console) you will see that under `coef_info` column title it says list.
+So this has just added the information about our coefficients to a new column in the original table, but what if we actually want to extract this information, well we can just use `unnest()` from the `tidyr` package (also part of the `tidyverse`) that takes a list-column and makes each element its own row. I know it's a list column as if you just explore `GCSE_models_tidy` (just run that in the console) you will see that under `coef_info` column title it says list.
 
 ```{r, message=FALSE, cache=FALSE}
 GCSE_coef <- GCSE_models_tidy %>%
@@ -419,7 +424,7 @@ coef
 ```
 
 
-Now let'd have a look at the histogram of our coefficients to see the distribution....
+Now let's have a look at the histogram of our coefficients to see the distribution....
 ```{r}
 coef %>%
   ggplot(aes(x=estimate)) +
@@ -439,7 +444,7 @@ coef %>%
 
 Now, wouldn't it be useful to get some confidence intervals based on our bootstrap resample. Well! we can using the `int_pctl()` from the `rsample` package, which is also part of `tidymodels`.
 
-Here, we give the function our models (`GCSE_models_tidy`), tell it what column the statstics are in (`coef_info`), specify the level of significance (`alpha`). Now if you recall we set the apparent argument to true earlier on and this is because this is a requirement of `int_pctl()`
+Here, we give the function our models (`GCSE_models_tidy`), tell it what column the statistics are in (`coef_info`), specify the level of significance (`alpha`). Now if you recall we set the apparent argument to true earlier on and this is because this is a requirement of `int_pctl()`
 
 ```{r}
 library(rsample)
@@ -452,9 +457,9 @@ we can also change alpha to 0.01, which would be the 99% confidence level, but y
 
 Here our confidence level means that if we ran the same regression model again with different sample data we could be 95% sure that those values would be within our range here.
 
-**Confidence interval** = the range of values that a future estimate will be betweeen
+**Confidence interval** = the range of values that a future estimate will be between
 
-**Confidence level** = the perctange certainty that a future value will be between our confidence interval values
+**Confidence level** = the percentage certainty that a future value will be between our confidence interval values
 
 Now lets add our predictions to our original data for a visual comparison, we will do this using the `augment()` function from the package `broom`, again we will need to use `unnest()` too. 
 
@@ -486,7 +491,7 @@ firstbootlength <- firstboot %>%
 #nrow(firstboot)
 ```
 
-Ok, so how do we know that our coefficient is the same for all 626 points within our first bootstrap? Well we can check all of them, but this would just print the coefficent info for all 262....
+Ok, so how do we know that our coefficient is the same for all 626 points within our first bootstrap? Well we can check all of them, but this would just print the coefficient info for all 262....
 
 ```{r, eval=FALSE, cache=FALSE}
 firstboot$coef_info
@@ -605,7 +610,7 @@ ggplot(LonWardProfiles, aes(x=log(median_house_price_2014))) +
 
 This looks a little more like a normal distribution, but it is still a little skewed. 
 
-Fortunately in R, we can use the `symbox()` function in the `car` package to try a range of transfomations along Tukey's ladder: 
+Fortunately in R, we can use the `symbox()` function in the `car` package to try a range of transformations along Tukey's ladder: 
 
 ```{r, message=FALSE, cache=TRUE}
 symbox(~median_house_price_2014, 
@@ -637,7 +642,7 @@ qplot(x = log(median_house_price_2014),
 
 #### Should I transform my variables?
 
-The decision is down to you as the modeller - it might be that a transformation doesn't succeed in normalising the distribtuion of your data or that the interpretation after the transformation is problematic, however it is important not to violate the assumptions underpinning the regression model or your conclusions may be on shaky ground. 
+The decision is down to you as the modeler - it might be that a transformation doesn't succeed in normalising the distribution of your data or that the interpretation after the transformation is problematic, however it is important not to violate the assumptions underpinning the regression model or your conclusions may be on shaky ground. 
 
 ### Assumption 2 - The residuals in your model should be normally distributed
 
@@ -666,7 +671,7 @@ Examining the histogram above, we can be happy that our residuals look to be rel
 
 Now, the regression model we have be experimenting with so far is a simple bivariate (two variable) model. One of the nice things about regression modelling is while we can only easily visualise linear relationships in a two (or maximum 3) dimension scatter plot, mathematically, we can have as many dimensions / variables as we like. 
 
-As such, we could extend model 1 into a multiple regression model by adding some more explanatory variables that we think could affect GSCE scores. Let's try the log or ^-1 transformed house price variable from earlier (the rationalle being that higher house prices indicate more affluence and therefore, potentially, more engagement with education):
+As such, we could extend model 1 into a multiple regression model by adding some more explanatory variables that we think could affect GSCE scores. Let's try the log or ^-1 transformed house price variable from earlier (the rationale being that higher house prices indicate more affluence and therefore, potentially, more engagement with education):
 
 ```{r, message=FALSE, cache=TRUE}
 
